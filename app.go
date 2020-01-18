@@ -20,8 +20,8 @@ func sample() {
 	defer context.Disconnect()
 
 	// Test
-	context.Test()
+	// context.Test()
 
-	// context.Sync("/", "./test/data")
+	context.Sync("/", "./test/data")
 
 }
