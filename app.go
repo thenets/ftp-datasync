@@ -12,16 +12,16 @@ func main() {
 }
 
 func sample() {
-	// TODO load connection settings from config file
-
+	// Load config and connect
 	context := ftp_op.ServerContext{
 		ConfigFilePath: "./test/server.yml",
 	}
-
-	// context.Test()
-
 	context.Connect()
-	context.Sync("/", "./test/data")
-	context.Disconnect()
+	defer context.Disconnect()
+
+	// Test
+	context.Test()
+
+	// context.Sync("/", "./test/data")
 
 }

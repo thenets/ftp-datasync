@@ -2,6 +2,7 @@ package ftpop
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"time"
 
@@ -27,7 +28,7 @@ type ServerContext struct {
 //   context.Disconnect()
 func (context *ServerContext) Connect() {
 	var err error
-	
+
 	// Load config file
 	context.readConfig()
 
@@ -54,13 +55,54 @@ func (context *ServerContext) Disconnect() {
 
 // Sync sincronizes files from remote directory to the the local directory
 func (context *ServerContext) Sync(remoteDir string, localDir string) {
-	items, _ := context.conn.List("/")
+	// Copy root dir
+	context.copyDirContent(remoteDir, localDir)
+}
+
+// copyDirContent will check the destination path and only replace
+// if the file size is different or doesn't exist
+func (context *ServerContext) copyDirContent(remoteDir string, localDir string) {
+	items, _ := context.conn.List(remoteDir)
 	for _, item := range items {
-		debug(item)
+		if item.Type == 1 {
+			// Is a directory
+			context.copyDirContent(
+				fmt.Sprintf("%s%s/", remoteDir, item.Name),
+				fmt.Sprintf("%s%s/", localDir, item.Name),
+			)
+
+		} else {
+			// Is a file
+			// ... so do nothing
+			fmt.Println(remoteDir, item.Name)
+		}
+
+		// debug(item)
 	}
 }
 
 // Test nothing but testing things...
 func (context *ServerContext) Test() {
-	debug(context)
+	// debug(context)
+	context.downloadFile("/midgard/sample-1.txt", "./test/data")
+}
+
+func (context *ServerContext) downloadFile(remoteFilePath string, destinationLocalFilePath string) {
+	// Download remote file
+	res, err := context.conn.Retr(remoteFilePath)
+	if err != nil {
+		check(err, fmt.Sprintf("[downloadFile] Unable to download the file '%s'", remoteFilePath))
+	}
+	defer res.Close()
+
+	// Write file on local storage
+	buf, err := ioutil.ReadAll(res)
+
+	err = ioutil.WriteFile("test/sample-1.txt", buf, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(res)
+
 }
