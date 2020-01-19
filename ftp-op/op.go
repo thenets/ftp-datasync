@@ -20,6 +20,11 @@ type ServerContext struct {
 	hostUser     string
 	hostPassword string
 
+	syncRemoteDir string
+	syncLocalDir  string
+
+	compressDir string
+
 	conn *ftp.ServerConn
 }
 
@@ -55,7 +60,10 @@ func (context *ServerContext) Disconnect() {
 }
 
 // Sync sincronizes files from remote directory to the the local directory
-func (context *ServerContext) Sync(remoteDir string, localDir string) {
+func (context *ServerContext) Sync() {
+	remoteDir := context.syncRemoteDir
+	localDir := context.syncLocalDir
+
 	// Recursive localDir if not exist
 	ensureDirExist(localDir)
 
@@ -118,7 +126,7 @@ func (context *ServerContext) deleteLocalFiles(remoteEntries []*ftp.Entry, remot
 	}
 
 	// Check if exist in remote
-	for _, localEntry := range localEntries { // for each localFile
+	for _, localEntry := range localEntries { // for each localEntry
 		localEntryFoundInRemote := false
 
 		// Search localFile in remoteEntries
@@ -235,27 +243,4 @@ func getLocalFileSize(filePath string) uint64 {
 	return uint64(fi.Size())
 }
 
-func ensureDirExist(dirName string) error {
 
-	err := os.MkdirAll(dirName, os.ModeDir)
-
-	if err == nil || os.IsExist(err) {
-		return nil
-	} else {
-		return err
-	}
-}
-
-func getFileModTime() {
-	fileStat, err := os.Stat("test.txt")
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("File Name:", fileStat.Name())        // Base name of the file
-	fmt.Println("Size:", fileStat.Size())             // Length in bytes for regular files
-	fmt.Println("Permissions:", fileStat.Mode())      // File mode bits
-	fmt.Println("Last Modified:", fileStat.ModTime()) // Last modification time
-	fmt.Println("Is Directory: ", fileStat.IsDir())   // Abbreviation for Mode().IsDir()
-}

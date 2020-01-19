@@ -22,6 +22,7 @@ func sample() {
 	// Test
 	// context.Test()
 
-	context.Sync("/", "./test/data")
+	// context.Sync()
+	context.Compress()
 
 }

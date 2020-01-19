@@ -3,6 +3,7 @@ package ftpop
 import (
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -19,6 +20,14 @@ func check(err error, errMsg string) {
 
 func debug(e interface{}) {
 	pretty.Println(e)
+}
+
+func ensureDirExist(dirName string) error {
+	err := os.MkdirAll(dirName, os.ModeDir)
+	if err == nil || os.IsExist(err) {
+		return nil
+	}
+	return err
 }
 
 func (context *ServerContext) readConfig() {
@@ -71,4 +80,20 @@ func (context *ServerContext) readConfig() {
 		panic("[readConfig] Variable 'hostPassword' not found in config file")
 	}
 	context.hostPassword = viper.GetString("hostPassword")
+
+	if viper.Get("syncRemoteDir") == nil {
+		panic("[readConfig] Variable 'syncRemoteDir' not found in config file")
+	}
+	context.syncRemoteDir = viper.GetString("syncRemoteDir")
+
+	if viper.Get("syncLocalDir") == nil {
+		panic("[readConfig] Variable 'syncLocalDir' not found in config file")
+	}
+	context.syncLocalDir = viper.GetString("syncLocalDir")
+
+	if viper.Get("compressDir") == nil {
+		panic("[readConfig] Variable 'compressDir' not found in config file")
+	}
+	context.compressDir = viper.GetString("compressDir")
+
 }
