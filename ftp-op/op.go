@@ -56,6 +56,9 @@ func (context *ServerContext) Disconnect() {
 
 // Sync sincronizes files from remote directory to the the local directory
 func (context *ServerContext) Sync(remoteDir string, localDir string) {
+	// Recursive localDir if not exist
+	ensureDirExist(localDir)
+
 	// Copy root dir
 	context.copyDirContent(remoteDir, localDir)
 }
@@ -68,8 +71,10 @@ func (context *ServerContext) copyDirContent(remoteDir string, localDir string) 
 		check(err, fmt.Sprintf("[copyDirContent] Can't list remoteDir '%s'", remoteDir))
 	}
 
-	for _, item := range items {
+	// Delete local files that doesn't exist in remote
+	context.deleteLocalFiles(items, remoteDir, localDir)
 
+	for _, item := range items {
 		if item.Type == 1 {
 			// Recursive call if is a directory
 			context.copyDirContent(
@@ -97,6 +102,55 @@ func (context *ServerContext) copyDirContent(remoteDir string, localDir string) 
 
 		}
 	}
+}
+
+// deleteLocalFiles deletes all local files that doesn't exist in remote directory
+func (context *ServerContext) deleteLocalFiles(remoteEntries []*ftp.Entry, remoteDir string, localDir string) {
+	// Just return if 'localDir' doesn't exist
+	if _, err := os.Stat(localDir); os.IsNotExist(err) {
+		return
+	}
+
+	// Get list of 'localEntries' in 'localDir'
+	localEntries, err := ioutil.ReadDir(localDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Check if exist in remote
+	for _, localEntry := range localEntries { // for each localFile
+		localEntryFoundInRemote := false
+
+		// Search localFile in remoteEntries
+		// TODO probably exist a better way to do it
+		for _, remoteEntry := range remoteEntries {
+			if remoteEntry.Type == 1 { // Is a directory
+				if localEntry.IsDir() && localEntry.Name() == remoteEntry.Name {
+					localEntryFoundInRemote = true
+				}
+
+			} else { // Is a file
+				if !localEntry.IsDir() && localEntry.Name() == remoteEntry.Name {
+					localEntryFoundInRemote = true
+				}
+			}
+		}
+
+		// Delete 'localEntry' if not found in remote
+		if !localEntryFoundInRemote {
+			localEntryPath := fmt.Sprintf("%s/%s", localDir, localEntry.Name())
+
+			fmt.Printf("File '%s' not found on remote. Removing...\n", localEntryPath)
+
+			if localEntry.IsDir() {
+				os.RemoveAll(localEntryPath)
+			} else {
+				os.Remove(localEntryPath)
+			}
+		}
+
+	}
+
 }
 
 // fileHasChange returns 'true' if the has change between remote and local file
