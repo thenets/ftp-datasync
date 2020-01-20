@@ -30,6 +30,16 @@ func ensureDirExist(dirName string) error {
 	return err
 }
 
+// fileExists checks if a file exists and is not a directory before we
+// try using it to prevent further errors.
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
+}
+
 func (context *ServerContext) readConfig() {
 	// Split dir path and config file name
 	var configDirPath string
@@ -95,5 +105,4 @@ func (context *ServerContext) readConfig() {
 		panic("[readConfig] Variable 'compressDir' not found in config file")
 	}
 	context.compressDir = viper.GetString("compressDir")
-
 }

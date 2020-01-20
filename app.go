@@ -19,10 +19,8 @@ func sample() {
 	context.Connect()
 	defer context.Disconnect()
 
-	// Test
-	// context.Test()
-
-	// context.Sync()
+	context.Sync()
 	context.Compress()
-
+	context.CompressCreateReport("./test/report.csv")
 }
+

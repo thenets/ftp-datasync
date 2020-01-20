@@ -185,21 +185,6 @@ func (context *ServerContext) fileHasChange(remoteEntry *ftp.Entry, destinationL
 	return true
 }
 
-// Test nothing but testing things...
-func (context *ServerContext) Test() {
-
-	// debug(context)
-
-	// Check file createAt time
-	// fileStat, _ := os.Stat("test/sample-1.txt")
-	// debug(fileStat.ModTime().Unix())
-
-	// fmt.Println(context.conn.FileSize("/midgard/sample-1.txt"))
-	// fmt.Println(getLocalFileSize("test/sample-1.txt"))
-
-	// context.downloadFile("/midgard/sample-1.txt", "./test/data")
-}
-
 func (context *ServerContext) downloadFile(remoteEntry *ftp.Entry, remoteFilePath string, destinationLocalFilePath string) {
 	// Download remote file
 	res, err := context.conn.Retr(remoteFilePath)
@@ -242,5 +227,3 @@ func getLocalFileSize(filePath string) uint64 {
 
 	return uint64(fi.Size())
 }
-
-
